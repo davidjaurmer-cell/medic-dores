@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="256" height="256" role="img" aria-label="MEDIC-DORES">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#23476b"/>
+      <stop offset="1" stop-color="#0f9f8a"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="15" fill="url(#g)"/>
+  <!-- medidor (gauge): fondo del arco -->
+  <path d="M12 41 A20 20 0 0 1 52 41" fill="none" stroke="#ffffff" stroke-opacity=".28" stroke-width="5.5" stroke-linecap="round"/>
+  <!-- medidor: tramo de cumplimiento -->
+  <path d="M12 41 A20 20 0 0 1 46.1 26.9" fill="none" stroke="#54ffdd" stroke-width="5.5" stroke-linecap="round"/>
+  <!-- marcas -->
+  <path d="M32 16.5v3.5M17.8 22.6l2.5 2.5M46.2 22.6l-2.5 2.5" stroke="#ffffff" stroke-opacity=".7" stroke-width="2" stroke-linecap="round"/>
+  <!-- aguja -->
+  <path d="M32 41 L43.5 29.5" stroke="#ffffff" stroke-width="3.2" stroke-linecap="round"/>
+  <!-- centro con cruz médica -->
+  <circle cx="32" cy="41" r="8" fill="#ffffff"/>
+  <path d="M32 36.6v8.8M27.6 41h8.8" stroke="#23476b" stroke-width="3" stroke-linecap="round"/>
+  <!-- línea de pulso inferior -->
+  <path d="M12 53h9l2.5-4 3 7 2.5-5 1.5 2h21.5" fill="none" stroke="#54ffdd" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" stroke-opacity=".9"/>
+</svg>

@@ -1,0 +1,789 @@
+============================================================================================
+                                MANUAL DE USO DE MEDIC-DORES                                
+              Herramienta para Direccionamiento y Para Gestión · Versión 1.11               
+============================================================================================
+
+Este archivo es la versión en texto del módulo "Manual de uso" que trae la aplicación.
+
+CONTENIDO
+
+  1. ¿Qué es MEDIC-DORES?
+  2. Requisitos e instalación
+  3. Conceptos clave
+  4. Recorrido por la interfaz
+  5. Primeros pasos (una sola vez)
+  6. Mañana: asignar los casos del día
+  7. Enviar la asignación al equipo por correo
+  8. Novedades manuales
+  9. Cierre del día
+  10. Tablero de indicadores
+  11. Informe en PDF y Excel por correo
+  12. Cómo se calcula el indicador
+  13. Histórico
+  14. Buscar caso
+  15. Configuración en detalle
+  16. Guardado, respaldos y seguridad de los datos
+  17. Rutina diaria recomendada
+  18. Preguntas frecuentes y solución de problemas
+  19. Atajos de teclado
+  20. Glosario de archivos
+
+
+============================================================================================
+1. ¿QUÉ ES MEDIC-DORES?
+============================================================================================
+
+MEDIC-DORES es una aplicación web que mide la productividad diaria de un equipo de cuentas
+médicas que gestiona casos en dos estados: Direccionamientos y Para Gestión. Cada mañana
+reparte los casos pendientes entre las personas que trabajan ese día. Al final del día
+revisa cuáles cambiaron de estado y calcula el porcentaje de cumplimiento de cada persona y
+del equipo.
+
+Todo se hace en el navegador y no necesita servidor ni internet. Los archivos de Excel se
+leen y se generan en el propio equipo y los datos nunca salen del computador.
+
+¿Qué problema resuelve?
+-----------------------
+  * Reemplaza el reparto manual de casos en Excel, que era lento y propenso a errores.
+  * Depura de forma automática los casos que no se deben asignar: EPS no gestionadas,
+    vencidos, con novedad ya reportada o con vigencia futura.
+  * Reparte de forma equitativa y mantiene juntos los casos de un mismo paciente.
+  * Mide el cumplimiento con una regla única y transparente, día a día, y lo acumula por
+    semana, mes, rango o año.
+  * Alerta los casos vencidos sin novedad reportada (alto riesgo) y los que están por
+    vencer.
+  * Prepara el correo de la asignación para el equipo y el informe en PDF y Excel para la
+    jefatura.
+  * Redistribuye los casos de una persona que se ausenta a mitad del día.
+
+  NOTA: Todos los nombres de EPS, plataformas y números de caso que aparecen en esta versión
+        de portafolio son ficticios: MEDIFLOW (plataforma de donde sale el historial), EPS
+        Aurora, EPS Boreal, EPS Cóndor y EPS Orión.
+
+
+============================================================================================
+2. REQUISITOS E INSTALACIÓN
+============================================================================================
+
+  * Navegador: Google Chrome o Microsoft Edge en versión reciente. Se necesitan porque son
+    los que permiten guardar en una carpeta del equipo (File System Access API). En otros
+    navegadores la app abre, pero no puede guardar en carpeta.
+  * No usar modo incógnito: en incógnito el navegador borra los datos al cerrar.
+  * Instalación: no hay que instalar nada. Basta con abrir el archivo index.html con doble
+    clic o entrar a la dirección publicada en GitHub Pages.
+  * Internet: no es necesario. La app funciona sin conexión porque las fuentes, los íconos y
+    las librerías van incluidos en el mismo archivo.
+  * Carpeta de datos (recomendado): una carpeta sincronizada, por ejemplo en OneDrive, para
+    que el histórico quede respaldado.
+
+
+============================================================================================
+3. CONCEPTOS CLAVE
+============================================================================================
+
+  * Historial
+      Qué significa: Archivo Excel que se descarga de la plataforma MEDIFLOW con todos los
+      casos y su estado actual. Es la fuente principal de la app.
+  * No Caso
+      Qué significa: Número único de cada caso, normalmente de 20 dígitos o más. La app lo
+      trata siempre como texto para que Excel no lo dañe.
+  * Estado Int
+      Qué significa: Estado interno del caso en el historial. Solo se asignan los que están
+      en Direccionamientos o Para Gestión.
+  * Pestaña
+      Qué significa: Bandeja de origen del caso: Direccionamientos o Para Gestión.
+  * PBS / NO PBS
+      Qué significa: Tipo de servicio. Si la columna No Prescripción trae un número, el caso
+      es NO PBS; si está vacía, es PBS.
+  * Novedad
+      Qué significa: Reporte a la EPS sobre un caso, que llega en los formatos de EPS Aurora
+      y EPS Boreal o se registra a mano. Un caso con novedad no se asigna, y una novedad del
+      mismo día cuenta como gestión.
+  * Tanda
+      Qué significa: Cada reparto que se congela en un mismo día. Puede haber varias tandas
+      por día (por ejemplo, una en la mañana y otra al mediodía).
+  * Foto de la mañana
+      Qué significa: Fecha y hora del historial con el que se hizo la tanda. En el cierre
+      solo cuentan los cambios de estado posteriores a esa foto.
+  * Congelar
+      Qué significa: Guardar el reparto de una tanda. Desde ese momento queda fijo y se
+      descarga su Excel.
+  * Cierre provisional
+      Qué significa: Resultado del cierre ya guardado, pero que todavía puede cambiar. No
+      cuenta en el tablero salvo que se active "Incluir provisionales".
+  * Cierre definitivo
+      Qué significa: Resultado final del día. Cuenta en el tablero y ya no se puede
+      modificar sin antes reabrir la tanda.
+  * Gestión Posterior
+      Qué significa: Destino sugerido para un caso de Direccionamientos cuya vigencia
+      termina dentro de más días que los configurados (30 por defecto).
+  * Alto riesgo
+      Qué significa: Caso vencido, es decir con Vigencia Hasta anterior al día, que no tiene
+      novedad reportada en ninguna fuente.
+  * Mismo paciente
+      Qué significa: Casos con el mismo tipo y número de documento del paciente. Se asignan
+      juntos a una sola persona.
+  * Por vencer
+      Qué significa: Caso asignado cuya vigencia termina hoy o dentro de los próximos días
+      hábiles configurados (2 por defecto). Va primero en la lista de cada persona y se
+      resalta en rojo en el Excel.
+  * Redistribución por ausencia
+      Qué significa: Traslado de los casos pendientes de una persona que se fue a mitad del
+      día a las demás. No cuenta en contra de quien se ausentó.
+  * Informe
+      Qué significa: PDF visual y Excel que la app genera desde el Tablero con los filtros
+      actuales, listos para enviar por correo.
+
+
+============================================================================================
+4. RECORRIDO POR LA INTERFAZ
+============================================================================================
+
+Menú lateral (izquierda)
+------------------------
+  * Logo y nombre de la app.
+  * Módulos: Tablero, Mañana: asignar, Cierre del día, Novedades manuales, Histórico, Buscar
+    caso, Configuración y Manual de uso.
+  * Botón ‹ para contraer o expandir el menú. La app recuerda la preferencia.
+  * Estado del almacenamiento: "Guardando en <carpeta>", "Carpeta sin permiso" o "Datos solo
+    en este navegador", con el botón para conectar o reconectar.
+  * Créditos de los desarrolladores.
+
+Barra superior
+--------------
+  * Chip de versión: al darle clic muestra las novedades de la versión.
+  * Buscar o ir a… (Ctrl + K): paleta de comandos para saltar a cualquier módulo, abrir el
+    tablero de hoy, de la semana o del mes, ver el cumplimiento de una persona o buscar un
+    número de caso.
+  * Chip de guardado: indica si los datos se guardaron y verificaron en la carpeta y a qué
+    hora. Al darle clic se ve el detalle.
+  * Botón de tema: cambia entre claro, oscuro y automático, que sigue la configuración de
+    Windows. También se puede elegir desde Ctrl + K.
+  * Fecha de hoy.
+
+Guía de pasos
+-------------
+Los módulos Mañana y Cierre muestran arriba una barra de pasos con lo que ya está hecho (✓)
+y un recuadro de Siguiente paso que indica exactamente qué hacer a continuación.
+
+
+============================================================================================
+5. PRIMEROS PASOS (UNA SOLA VEZ)
+============================================================================================
+
+  1. Abre la app en Chrome o Edge.
+  2. Ve a Configuración → Carpeta de datos y respaldo y presiona Elegir carpeta. Escoge una
+     carpeta, idealmente sincronizada con OneDrive, y acepta el permiso de lectura y
+     escritura.
+  3. En Equipo, escribe el nombre de cada persona y presiona Agregar. El documento es
+     opcional. Marca "Activo por defecto" para quienes trabajan normalmente.
+  4. Revisa los Parámetros: la meta (80 % por defecto), los días de vigencia, las EPS que no
+     se gestionan y los estados que se asignan. Presiona Guardar parámetros.
+  5. Revisa los Festivos de Colombia del año. Desmarca los que no apliquen o agrega días no
+     hábiles internos.
+
+  IMPORTANTE: Sin carpeta conectada, la app no deja asignar, cerrar, registrar novedades ni
+        importar. Así se evita que un día quede guardado solo en el navegador y se pierda.
+
+  NOTA: Cada vez que se abre la app, el navegador vuelve a pedir permiso para la carpeta.
+        Cuando aparezca el aviso, presiona Reconectar carpeta y luego Permitir.
+
+
+============================================================================================
+6. MAÑANA: ASIGNAR LOS CASOS DEL DÍA
+============================================================================================
+
+Paso 1 · Fecha y equipo activo
+------------------------------
+  * Elige la fecha de la asignación. La app indica si es día hábil, festivo o fin de semana.
+  * En ¿Quién trabaja hoy? marca a las personas presentes. Solo ellas reciben casos.
+  * Si el día ya tiene tandas, aparece la tarjeta Tandas de hoy. Ahí se ve cada tanda con su
+    foto, número de casos y estado de cierre, y se puede volver a descargar su Excel. En Al
+    congelar se elige entre Crear la tanda N (recomendado) y Reemplazar una tanda que
+    todavía no tenga cierre definitivo.
+
+Paso 2 · Archivos del día
+-------------------------
+  * Historial de MEDIFLOW (obligatorio): archivo .xlsx con una hoja llamada "historial" o,
+    si no existe, la primera hoja. Si el nombre del archivo trae la fecha y hora (por
+    ejemplo historial - 2026-11-10T073705.xlsx), la app la usa como foto de la mañana y
+    ajusta sola la fecha de asignación.
+  * Novedades EPS Aurora y Novedades EPS Boreal (opcionales): se pueden subir uno o varios
+    archivos de cada una. La app busca sola la columna del No Caso y la de la fecha. Si no
+    las reconoce, pregunta cuáles usar y recuerda la elección para ese formato.
+  * Las novedades de EPS Cóndor o de otras fuentes sin archivo se toman del módulo Novedades
+    manuales.
+  * Presiona Procesar y repartir.
+
+Cómo depura la app (en este orden)
+----------------------------------
+  * 0
+      Regla: Del historial solo se toman los casos con Estado Int = Direccionamientos o Para
+      Gestión.
+      Resultado: Candidatos
+  * –
+      Regla: No Caso dañado por Excel (notación científica, por ejemplo 1.15E+25).
+      Resultado: Excluido
+  * –
+      Regla: Caso ya asignado en una tanda anterior del mismo día.
+      Resultado: Excluido: ya asignado hoy
+  * 1
+      Regla: La EPS está en la lista "EPS que no se gestionan".
+      Resultado: Excluido: EPS no gestionada
+  * 2
+      Regla: Vigencia Hasta anterior al día de la asignación.
+      Resultado: Excluido: vencido (y si no tiene novedad → ALTO RIESGO)
+  * 3
+      Regla: Tiene una novedad con fecha igual o anterior al día, o sin fecha.
+      Resultado: Excluido: ya tenía novedad
+  * 4
+      Regla: Vigencia Desde posterior al día (todavía no empieza).
+      Resultado: Excluido: vigencia futura
+  * ✓
+      Regla: Pasa todas las reglas.
+      Resultado: Se asigna
+
+Para los casos de Direccionamientos se calcula un destino sugerido. Si a la vigencia le
+quedan más días que los configurados, el destino es Gestión Posterior; si le quedan menos,
+Para Gestión; si no tiene Vigencia Hasta, Revisar vigencia.
+
+Cómo reparte la app
+-------------------
+  1. Agrupa en un bloque los casos de un mismo paciente, siempre que esa opción esté activa
+     en Configuración.
+  2. Ordena los bloques de mayor a menor tamaño, primero los de Direccionamientos y luego
+     por vigencia más próxima.
+  3. Entrega cada bloque completo a la persona con menos casos en total. Si hay empate,
+     desempata por menos casos en esa pestaña y luego por el turno, que rota cada día para
+     que no le toque siempre a la misma persona.
+  4. Los casos sueltos de Direccionamientos se equilibran primero dentro de esa pestaña.
+  5. Si un paciente ya tenía casos asignados en otra tanda del día, sus casos nuevos van con
+     la misma persona.
+
+Paso 3 · Revisar y congelar
+---------------------------
+  * Las tarjetas muestran las filas del historial, los candidatos, los excluidos (por
+    motivo) y los casos A asignar (NO PBS y PBS).
+  * Si hay casos vencidos sin novedad, aparece un recuadro rojo de ALTO RIESGO con la lista
+    de casos y los días que llevan vencidos.
+  * Si hay casos que vencen hoy o en los próximos días hábiles configurados, aparece el
+    aviso casos por vencer. En la tabla de reparto se ve cuántos le tocaron a cada persona.
+  * Si un archivo de novedades no trae reportes de los últimos días hábiles configurados (3
+    por defecto), la app pregunta ¿Es el archivo actualizado? y en "Novedades leídas" lo
+    marca como posiblemente desactualizado.
+  * La tabla Paso a paso de la depuración muestra cuántos casos quita cada regla y cuántos
+    quedan después.
+  * La tabla Reparto por persona muestra Direccionamientos, Para Gestión, NO PBS, PBS, casos
+    agrupados por paciente y el total de cada persona.
+  * En Novedades leídas se ve qué archivo, hoja y columnas se usaron y los avisos de cada
+    uno.
+  * Se pueden desplegar Ver excluidos y Ver casos asignados para revisar caso por caso.
+  * Presiona Congelar y descargar Excel. La tanda queda guardada con su foto y se descarga
+    ASIGNACION_dd-mm-aaaa.xlsx, o ..._TANDAn.xlsx si es la segunda tanda o una posterior.
+  * Enseguida se abre la ventana Enviar la asignación al equipo (ver la sección 7).
+
+Contenido del Excel de asignación
+---------------------------------
+  * Resumen
+      Contenido: Casos por persona: Direccionamientos, Para Gestión y total.
+  * ALTO RIESGO vencidos
+      Contenido: Solo aparece si hay casos de alto riesgo: vigencia y días vencido.
+  * Consolidado
+      Contenido: Todos los casos asignados con fecha, pestaña, tipo, EPS, persona,
+      vigencias, destino sugerido, Mismo paciente y Alerta vencimiento ("VENCE HOY" o "Vence
+      en N días hábiles", en rojo).
+  * Una hoja por persona
+      Contenido: Sus casos, primero los que están por vencer y los de un mismo paciente
+      seguidos, con columnas en blanco de OBSERVACION y DETALLE para que la persona trabaje.
+  * Excluidos
+      Contenido: Cada caso excluido con su motivo y detalle.
+
+
+============================================================================================
+7. ENVIAR LA ASIGNACIÓN AL EQUIPO POR CORREO
+============================================================================================
+
+Al congelar una tanda se abre la ventana Enviar la asignación al equipo. También se puede
+abrir después con el botón ✉ Correo de la tarjeta "Tandas de hoy" o desde Ctrl + K con
+"Enviar la última asignación por correo".
+
+  1. Revisa Para: trae los correos de las personas activas de esa tanda. Si alguien no tiene
+     correo, la app lo avisa. Se agrega en Configuración → Equipo.
+  2. Agrega un CC si hace falta, por ejemplo la jefatura. La app lo recuerda.
+  3. Elige dónde abrir el correo: Outlook o el programa de correo del equipo, Gmail en el
+     navegador u Outlook en el navegador (Office 365).
+  4. Revisa el Asunto y el Mensaje. Ya vienen escritos y dicen "primera", "segunda"… según
+     la tanda, con el día.
+  5. Si cambias el texto y quieres usarlo siempre, marca Guardar este mensaje como
+     plantilla. El número de la tanda y el día se ajustan solos en los siguientes correos.
+  6. Presiona Preparar correo. Se abre el correo ya escrito y el Excel de la asignación
+     queda en la carpeta Descargas.
+  7. Arrastra el Excel al correo, o usa el clip para adjuntarlo, y da Enviar.
+
+  NOTA: Como la app funciona sin internet y sin servidor, no puede enviar el correo sola ni
+        adjuntar el archivo. Prepara todo y la persona solo adjunta y envía. Si el equipo lo
+        permite, aparece el botón Compartir…, que abre el menú Compartir de Windows con el
+        Excel ya adjunto.
+
+
+============================================================================================
+8. NOVEDADES MANUALES
+============================================================================================
+
+Sirven para las EPS que no envían archivo (como EPS Cóndor) o para cualquier novedad que no
+aparezca en los formatos.
+
+  1. Escribe el No Caso.
+  2. Elige la Fecha del reporte.
+  3. Escribe la EPS y una Observación (opcionales).
+  4. Presiona Agregar.
+
+Una novedad manual cuenta igual que una de archivo. En la mañana excluye el caso si su fecha
+es igual o anterior al día. En el cierre suma como gestión de la persona asignada si la
+fecha es la del día. La lista Novedades registradas permite eliminarlas.
+
+  NOTA: Cuando en el cierre se marca un caso "Con novedad", la app crea por sí sola la
+        novedad manual correspondiente.
+
+
+============================================================================================
+9. CIERRE DEL DÍA
+============================================================================================
+
+Paso 1 · Día y tandas
+---------------------
+  * Elige el día en la lista. Al lado de cada fecha aparecen sus tandas, sus casos y si ya
+    está cerrado.
+  * Marca las tandas que vas a cerrar. Las que tienen cierre definitivo no se pueden marcar;
+    para cambiarlas hay que presionar Reabrir.
+
+Paso 2 · Archivos del cierre
+----------------------------
+  * Sube el historial de MEDIFLOW actualizado, descargado al final del día (obligatorio).
+  * Sube los formatos de novedades actualizados de EPS Aurora y EPS Boreal (opcional).
+  * Presiona Procesar cierre.
+
+Cómo decide el resultado de cada caso
+-------------------------------------
+  * El estado cambió (de Direccionamientos o Para Gestión a cualquier otro) después de la
+    foto de la mañana.
+      Resultado: Cambio de estado (cuenta como gestionado)
+  * No cambió, pero tiene una novedad con fecha del día (archivo o manual).
+      Resultado: Por novedad (cuenta como gestionado)
+  * Sigue en el mismo estado y sin novedad del día.
+      Resultado: No gestionado · Sin cambio de estado
+  * El cambio es anterior a la foto de la mañana.
+      Resultado: No gestionado · Cambio anterior a la foto
+  * El caso no aparece en el historial.
+      Resultado: No gestionado · No aparece en el historial
+  * Se quitó de la asignación.
+      Resultado: Quitado de la asignación (no cuenta para nadie)
+
+Si el caso cambió de estado pero el historial no trae F Actualización, se marca como
+Revisar. En Configuración se puede cambiar la regla a "Solo los cambios hechos el mismo día
+de la asignación".
+
+Paso 3 · Revisar y marcar
+-------------------------
+  * Se muestra el resultado por tanda y el resumen del día con el cumplimiento de cada
+    persona.
+  * En Detalle por caso se puede filtrar por resultado.
+  * Marcar gestión manual: lista los casos que quedaron como "No gestionado". Se pueden
+    marcar como ✓ Gestionado o ✉ Con novedad, uno por uno, seleccionando varios o pegando
+    una lista de números de caso. Se puede agregar una observación. La marca queda
+    registrada con fecha y hora y se deshace con Quitar marca.
+  * Redistribuir casos por ausencia: se usa si alguien se va a mitad del día. Se elige la
+    persona ausente, el motivo (incapacidad, permiso, calamidad doméstica, diligencia o
+    capacitación, salida anticipada u otro), una observación y quiénes reciben los casos.
+    Los casos se mueven a quien tenga menos carga ese día y respetan "mismo paciente, misma
+    persona". Si además se sube el historial actual (opcional), los casos que la persona ya
+    movió o que tienen marca manual se quedan con ella, porque son su gestión. Al confirmar
+    se descarga ASIGNACION_..._REDISTRIBUIDA.xlsx. Los casos quedan registrados como
+    reasignación por ausencia y no cuentan en contra de quien se fue.
+  * Quitar casos de la asignación: para errores de reparto, traslados o duplicados. Hay que
+    elegir un motivo y escribir una observación, que es obligatoria. El caso deja de contar
+    en los indicadores de la persona y se puede Restaurar.
+
+Paso 4 · Guardar
+----------------
+  * Guardar como provisional: guarda el resultado, pero todavía no cuenta en el tablero.
+  * Guardar y marcar definitivo: guarda el resultado y lo deja contar en el tablero.
+  * Descargar Excel del día: genera CIERRE_dd-mm-aaaa.xlsx con las hojas Resumen por
+    persona, Detalle, Excluidos y Quitados de la asignación.
+
+  IMPORTANTE: Si después de cerrar se reasigna un caso desde Histórico, la tanda queda
+        marcada como reprocesar. Hay que volver a procesar el cierre de ese día.
+
+
+============================================================================================
+10. TABLERO DE INDICADORES
+============================================================================================
+
+Periodos
+--------
+Día, Semana (lunes a viernes), Mes, Varios meses (Ctrl + clic), Rango de fechas o Año.
+
+Filtros
+-------
+  * Pestaña: Direccionamientos o Para Gestión.
+  * Tipo de servicio: NO PBS o PBS.
+  * EPS.
+  * Resultado: Cambio de estado, Por novedad, No gestionado o Quitado.
+  * Personas: chips para elegir a una o varias personas.
+  * Incluir provisionales: suma también los cierres que todavía no son definitivos.
+  * Limpiar filtros.
+
+Botones del tablero
+-------------------
+  * Excel: descarga la vista actual en Excel.
+  * Generar informe: arma un PDF visual y un Excel con los filtros actuales, listos para
+    enviar (ver la sección siguiente).
+  * Presentar: pone el tablero en pantalla completa para proyectarlo en una reunión. Se
+    actualiza solo cada 2 minutos. Se sale con Esc o con el botón "Salir de la
+    presentación".
+
+Qué muestra
+-----------
+  * Tarjetas de cumplimiento del equipo frente a la meta, con la comparación contra el
+    periodo anterior, más asignados, gestionados, no gestionados y excluidos.
+  * La lista de días pendientes de cierre dentro del periodo.
+  * Alto riesgo: casos vencidos sin novedad en el periodo.
+  * Ranking del equipo: cumplimiento por persona, días trabajados y días en que cumplió la
+    meta.
+  * Tendencia del cumplimiento: se agrupa por día, semana o mes según lo largo del periodo.
+  * Calendario de cumplimiento: los últimos 31 días cerrados.
+  * Embudo del periodo: candidatos → excluidos → asignados → gestionados.
+  * Resultados al cierre, Motivos de no gestión y Exclusiones de la mañana.
+  * Casos quitados de la asignación.
+  * Por EPS, pestaña y tipo de servicio: asignados y % de gestión.
+
+
+============================================================================================
+11. INFORME EN PDF Y EXCEL POR CORREO
+============================================================================================
+
+Desde Tablero → Generar informe se arma un informe con exactamente lo que está filtrado:
+periodo, personas, pestaña, tipo de servicio, EPS y resultado.
+
+Opciones
+--------
+  * Formato: PDF + Excel, solo PDF o solo Excel.
+  * Secciones del PDF: conclusiones automáticas, indicadores con medidor de cumplimiento,
+    tendencia, ranking por persona, cumplimiento por persona y día, alertas de quienes están
+    bajo la meta y casos de alto riesgo. Se marcan o desmarcan.
+  * Correo: Para, CC y el programa donde se abre. Los valores por defecto se guardan en
+    Configuración → Informe por correo.
+
+Botones
+-------
+  * Descargar: baja los archivos a la carpeta Descargas.
+  * Descargar y preparar correo: baja el PDF y el Excel y abre un correo ya escrito con un
+    mensaje corto. Solo falta arrastrar los dos archivos y dar Enviar.
+  * Compartir…: aparece solo si Windows lo permite y abre el menú Compartir con los archivos
+    ya adjuntos.
+
+Qué trae el informe
+-------------------
+  * PDF: portada con periodo y filtros, conclusiones escritas en lenguaje claro
+    (cumplimiento frente a la meta y al periodo anterior, mejor resultado y quién requiere
+    seguimiento), tarjetas de indicadores, gráficas y tablas. La app lo genera ella misma,
+    sin librerías.
+  * Excel: una hoja "Informe" con los filtros y las conclusiones, más las hojas del tablero.
+
+  NOTA: Los archivos se llaman Informe_productividad_<periodo>.pdf y .xlsx.
+
+
+============================================================================================
+12. CÓMO SE CALCULA EL INDICADOR
+============================================================================================
+
+% Cumplimiento = (Cambio de estado + Por novedad) ÷ Asignados × 100
+
+  * Los asignados no incluyen los casos excluidos en la mañana ni los quitados de la
+    asignación.
+  * Una persona cumple cuando su porcentaje es igual o mayor a la meta configurada (80 % por
+    defecto).
+  * Para cada persona se cuentan también los días que cumplió, evaluando cada día por
+    separado.
+  * El cumplimiento del equipo suma lo que hicieron todos sobre el total de casos asignados.
+  * Solo cuentan los días con cierre definitivo, salvo que se active "Incluir
+    provisionales".
+
+Ejemplo: Ana recibió 40 casos. Al cierre, 30 cambiaron de estado y 3 tenían novedad del día.
+Su cumplimiento es (30 + 3) ÷ 40 = 82,5 %, así que cumple la meta del 80 %.
+
+
+============================================================================================
+13. HISTÓRICO
+============================================================================================
+
+Días registrados
+----------------
+Lista de todas las tandas guardadas con su fecha, casos y estado de cierre. Para cada una se
+puede Ver el detalle, descargar el Excel de asignación o el Excel de cierre, o Eliminar.
+
+Detalle de un día y reasignación
+--------------------------------
+En el detalle aparecen el historial usado, la hora en que se congeló, el resumen del cierre
+y todos los casos. Si el cierre no es definitivo, se puede reasignar un caso a otra persona.
+Para hacerlo se escribe el No Caso, se elige la nueva persona y se indica un motivo, que es
+obligatorio. La reasignación queda registrada en el caso.
+
+Recuperar días desde los Excel descargados
+------------------------------------------
+Si se perdieron datos, se pueden subir los archivos ASIGNACION_dd-mm-aaaa.xlsx y CIERRE_dd-
+mm-aaaa.xlsx que la app descargó esos días. Un CIERRE recupera el día completo con sus
+indicadores. Una ASIGNACION recupera solo el reparto y deja el día pendiente de cierre. Si
+el día ya existe, se puede elegir entre No tocar (recomendado) y Reemplazar.
+
+Importar histórico del Excel anterior
+-------------------------------------
+Sirve para traer el consolidado que se llevaba antes en Excel, con las columnas Fecha, No
+Caso, Pestaña origen, Tipo servicio, EPS, Asignado a, Gestionado, Resultado, Estado al
+cierre y Gestionado por. Cada fecha entra como un día con cierre definitivo. Se puede elegir
+qué hacer con los casos duplicados y con las fechas que ya existen. Antes de importar se ve
+una vista previa.
+
+
+============================================================================================
+14. BUSCAR CASO
+============================================================================================
+
+Escribe un No Caso y presiona Buscar para ver su recorrido completo: en qué días y tandas se
+asignó y a quién, el resultado de cada cierre, si fue excluido y por qué, y sus novedades
+manuales. También se puede buscar desde la paleta Ctrl + K escribiendo el número.
+
+
+============================================================================================
+15. CONFIGURACIÓN EN DETALLE
+============================================================================================
+
+  * Carpeta de datos
+      Para qué sirve: Dónde se guarda productividad-db.json y la carpeta respaldos/.
+      Valor por defecto: Ninguna
+  * Descargar respaldo (.json)
+      Para qué sirve: Copia completa de todos los datos en un archivo.
+      Valor por defecto: —
+  * Restaurar respaldo
+      Para qué sirve: Carga un .json. Con Unir se conservan los días de ambos lados; con
+      Reemplazar todo solo quedan los datos del respaldo.
+      Valor por defecto: —
+  * Equipo
+      Para qué sirve: Personas que reciben casos, con su correo para enviarles la
+      asignación. El documento es solo de referencia.
+      Valor por defecto: Vacío
+  * Meta de cumplimiento (%)
+      Para qué sirve: Porcentaje mínimo para "Cumple".
+      Valor por defecto: 80
+  * Días de vigencia (Gestión Posterior)
+      Para qué sirve: Días que separan Gestión Posterior de Para Gestión en el destino
+      sugerido.
+      Valor por defecto: 30
+  * Verificar la carpeta cada
+      Para qué sirve: Cada cuánto se comprueba que el archivo guardado coincida.
+      Valor por defecto: 5 minutos
+  * EPS que no se gestionan
+      Para qué sirve: Lista separada por comas. Se compara por contenido del nombre.
+      Valor por defecto: EPS ORIÓN
+  * Excluir vencidos
+      Para qué sirve: No asigna casos con Vigencia Hasta anterior al día.
+      Valor por defecto: Sí
+  * Excluir vigencia futura
+      Para qué sirve: No asigna casos cuya vigencia todavía no empieza.
+      Valor por defecto: Sí
+  * Asignar juntos los casos de un mismo paciente
+      Para qué sirve: Agrupa por tipo y número de documento. Solo se guarda una huella, no
+      el documento.
+      Valor por defecto: Sí
+  * Alertar casos que vencen en (días hábiles)
+      Para qué sirve: Marca como "por vencer" los casos que vencen hoy o dentro de esos días
+      hábiles. Con 0 solo se marcan los que vencen hoy.
+      Valor por defecto: 2
+  * Avisar si las novedades no tienen reportes de los últimos (días hábiles)
+      Para qué sirve: Avisa cuando un archivo de novedades parece viejo.
+      Valor por defecto: 3
+  * Conservar copias diarias de respaldo (días)
+      Para qué sirve: Las copias diarias más antiguas se borran solas. Siempre se conserva
+      una por mes.
+      Valor por defecto: 60
+  * Informe por correo
+      Para qué sirve: Para, CC y programa de correo que se usan por defecto al preparar el
+      informe y el correo de la asignación.
+      Valor por defecto: Outlook / programa del equipo
+  * Cambios de estado que cuentan en el cierre
+      Para qué sirve: Desde la foto de la mañana (recomendado) o solo los del mismo día.
+      Valor por defecto: Desde la foto
+  * Estados que se asignan
+      Para qué sirve: Nombres de estado que equivalen a Direccionamientos y a Para Gestión.
+      Valor por defecto: Direccionamientos, Direccionamiento / Para Gestión
+  * Festivos de Colombia
+      Para qué sirve: Calculados con la Ley Emiliani. Se pueden quitar festivos o agregar
+      días no hábiles.
+      Valor por defecto: Año actual
+  * Columnas recordadas
+      Para qué sirve: Columnas elegidas para cada formato de novedades. Con Olvidar se
+      vuelve a preguntar.
+      Valor por defecto: —
+  * Registro de actividad
+      Para qué sirve: Las últimas 200 acciones con fecha y detalle.
+      Valor por defecto: —
+
+  NOTA: Los cambios de parámetros no recalculan los días que ya están cerrados.
+
+
+============================================================================================
+16. GUARDADO, RESPALDOS Y SEGURIDAD DE LOS DATOS
+============================================================================================
+
+  * Cada cambio se guarda primero en el navegador (IndexedDB) y luego en la carpeta, en el
+    archivo productividad-db.json.
+  * Además, cada día se escribe una copia en respaldos/productividad-db-AAAA-MM-DD.json. Las
+    copias diarias se conservan los días configurados (60 por defecto) y siempre queda una
+    por mes. Las copias previas a una unión se conservan 30 días.
+  * Después de guardar, la app vuelve a leer el archivo de la carpeta para comprobar que
+    coincide. El chip superior muestra "Guardado en la carpeta · hora".
+  * Cada 5 minutos, y cada vez que se vuelve a la pestaña, se verifica que la carpeta siga
+    conectada. Si algo falla aparece un aviso con el botón Reconectar carpeta.
+  * Al conectar una carpeta que ya tiene datos, o si otro equipo los modificó, la app une
+    las dos copias sin perder días: si un día está en ambas, gana la versión modificada más
+    reciente. Antes de escribir guarda una copia de seguridad de lo que había en la carpeta.
+  * Del paciente solo se guarda una huella (hash) del documento para agrupar sus casos. No
+    se guardan nombres ni números de documento de pacientes.
+
+
+============================================================================================
+17. RUTINA DIARIA RECOMENDADA
+============================================================================================
+
+  1. Abrir MEDIC-DORES y reconectar la carpeta si la app lo pide.
+  2. Descargar de MEDIFLOW el historial de la mañana y los formatos de novedades del día.
+  3. Ir a Mañana: asignar, marcar quién trabaja, subir los archivos y presionar Procesar y
+     repartir.
+  4. Revisar el ALTO RIESGO y reportar esas novedades.
+  5. Revisar los casos por vencer: van primero en la lista de cada persona.
+  6. Congelar y descargar el Excel y, en la ventana que aparece, preparar el correo al
+     equipo y adjuntar el Excel.
+  7. Durante el día, registrar en Novedades manuales las que no llegan en archivo.
+  8. Si alguien se ausenta, usar Redistribuir casos por ausencia en Cierre del día y enviar
+     el Excel redistribuido.
+  9. Si llegan casos nuevos, hacer otra tanda desde Mañana.
+  10. Al final del día, descargar el historial actualizado y las novedades actualizadas.
+  11. Ir a Cierre del día, procesar, revisar los "No gestionado", marcar o quitar lo que
+      corresponda y Guardar y marcar definitivo.
+  12. Consultar el Tablero y, si se necesita un reporte, usar Generar informe para enviar el
+      PDF y el Excel.
+
+
+============================================================================================
+18. PREGUNTAS FRECUENTES Y SOLUCIÓN DE PROBLEMAS
+============================================================================================
+
+  * No me deja asignar ni cerrar.
+      Causa probable: No hay carpeta conectada o perdió el permiso.
+      Solución: Presiona Elegir carpeta o Reconectar carpeta y luego Permitir.
+  * "Al historial le faltan columnas…"
+      Causa probable: El archivo no tiene los encabezados No Caso y Estado Int en sus
+      primeras 15 filas.
+      Solución: Descarga el historial completo de MEDIFLOW sin editarlo.
+  * Aparecen "No Caso dañados".
+      Causa probable: Excel convirtió el número a notación científica (1.15E+25).
+      Solución: Descarga de nuevo el archivo y no lo abras ni lo guardes en Excel antes de
+      subirlo.
+  * La app me pregunta qué columnas usar.
+      Causa probable: El formato de novedades cambió o es nuevo.
+      Solución: Elige la columna del No Caso y la de la fecha. La app lo recordará.
+  * El tablero no muestra un día.
+      Causa probable: El cierre de ese día es provisional o no se ha hecho.
+      Solución: Marca el cierre como definitivo o activa "Incluir provisionales".
+  * Un caso salió No gestionado, pero sí se trabajó.
+      Causa probable: El cambio no se reflejó en el historial o la novedad no estaba en los
+      archivos.
+      Solución: Usa Marcar gestión manual en Cierre del día.
+  * Un caso se asignó por error.
+      Causa probable: —
+      Solución: Usa Quitar casos de la asignación con motivo y observación.
+  * Se borraron los datos del navegador.
+      Causa probable: Limpieza del navegador o equipo nuevo.
+      Solución: Conecta la misma carpeta: la app recupera todo. También sirve Restaurar
+      respaldo o Recuperar días desde los Excel.
+  * La fecha de asignación cambió sola.
+      Causa probable: El nombre del historial trae otra fecha.
+      Solución: Es intencional: la asignación debe llevar la fecha de descarga del
+      historial.
+  * Al preparar el correo no se abre nada.
+      Causa probable: El programa de correo elegido no es el que usa el equipo.
+      Solución: Cambia "Abrir el correo en" (Outlook, Gmail u Outlook en el navegador) o en
+      Configuración → Informe por correo.
+  * El correo se abre sin el Excel adjunto.
+      Causa probable: Por seguridad, el navegador no puede adjuntar archivos a un correo.
+      Solución: Es normal: arrastra el archivo desde Descargas o usa Compartir… si aparece.
+  * "¿Es el archivo actualizado?" en las novedades.
+      Causa probable: El formato no trae reportes de los últimos días hábiles.
+      Solución: Descarga de nuevo el formato de novedades de la EPS y vuelve a procesar.
+  * Una persona se fue y sus casos quedaron sin gestionar.
+      Causa probable: —
+      Solución: Usa Redistribuir casos por ausencia en Cierre del día. No cuenta en contra
+      de quien se fue.
+  * El aviso de novedades sale cada vez.
+      Causa probable: No está marcada la casilla.
+      Solución: Marca "No volver a mostrar este aviso" y presiona Entendido.
+
+
+============================================================================================
+19. ATAJOS DE TECLADO
+============================================================================================
+
+  * Ctrl + K  (o  /)
+      Acción: Abrir la paleta Buscar o ir a…
+  * ↑ / ↓
+      Acción: Moverse en la paleta.
+  * Enter
+      Acción: Abrir la opción elegida.
+  * Esc
+      Acción: Cerrar la paleta o el diálogo, o salir del modo presentación.
+
+
+============================================================================================
+20. GLOSARIO DE ARCHIVOS
+============================================================================================
+
+  * historial - AAAA-MM-DDTHHMMSS.xlsx
+      Origen: MEDIFLOW
+      Uso: Entrada de la mañana y del cierre.
+  * Formato_Novedades_Autorizaciones.xlsx
+      Origen: EPS Aurora
+      Uso: Novedades reportadas.
+  * 2.VAL.CORREOS EPS BOREAL.xlsx
+      Origen: EPS Boreal
+      Uso: Novedades reportadas.
+  * ASIGNACION_dd-mm-aaaa[_TANDAn].xlsx
+      Origen: MEDIC-DORES
+      Uso: Reparto del día. También sirve para recuperar.
+  * ASIGNACION_..._REDISTRIBUIDA.xlsx
+      Origen: MEDIC-DORES
+      Uso: Reparto actualizado después de una redistribución por ausencia.
+  * CIERRE_dd-mm-aaaa[_TANDAn].xlsx
+      Origen: MEDIC-DORES
+      Uso: Resultado del día. También sirve para recuperar.
+  * Informe_productividad_<periodo>.pdf / .xlsx
+      Origen: MEDIC-DORES
+      Uso: Informe del tablero para enviar por correo.
+  * productividad-db.json
+      Origen: MEDIC-DORES
+      Uso: Base de datos completa en la carpeta.
+  * respaldos/*.json
+      Origen: MEDIC-DORES
+      Uso: Copias diarias y copias previas a cada unión.
+  * productividad-respaldo-AAAA-MM-DD.json
+      Origen: MEDIC-DORES
+      Uso: Respaldo descargado a mano.
+
+Columnas del historial que usa la app: Estado Int, No Caso, Vigencia Desde, Vigencia Hasta,
+No Prescripción, F Actualización, Última Actualización, EPS, Tipo Id e Id Paciente. Se
+reconocen por el nombre del encabezado, no por la posición, sin importar las tildes ni las
+mayúsculas.
+
+
+--------------------------------------------------------------------------------------------
+                   MEDIC-DORES · Proyecto de portafolio · Datos ficticios                   
+--------------------------------------------------------------------------------------------
